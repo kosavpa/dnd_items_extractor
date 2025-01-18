@@ -13,7 +13,7 @@ import java.util.Optional;
 @Getter
 @Setter
 
-public class Equipment {
+public abstract class Equipment {
     private String name;
 
     private String description;

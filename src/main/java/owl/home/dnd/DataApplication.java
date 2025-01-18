@@ -2,7 +2,11 @@ package owl.home.dnd;
 
 import lombok.SneakyThrows;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import owl.home.dnd.entitys.Armor;
+import owl.home.dnd.entitys.Scroll;
 import owl.home.dnd.entitys.Weapon;
+import owl.home.dnd.service.armor.ArmorService;
+import owl.home.dnd.service.scroll.ScrollService;
 import owl.home.dnd.service.weapon.WeaponService;
 
 import java.util.Set;
@@ -13,9 +17,8 @@ public class DataApplication {
     @SneakyThrows
     public static void main(String[] args) {
 //		SpringApplication.run(DataApplication.class, args);
-        WeaponService weaponService = new WeaponService();
 
-        Set<Weapon> weapons = weaponService.extractWeapons();
+        Set<Scroll> weapons = new ScrollService().extractScroll();
 
         System.out.println(weapons.size());
     }

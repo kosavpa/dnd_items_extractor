@@ -29,7 +29,7 @@ public class WeaponService {
     private static final Pattern ALL_FROM_MANY_WEAPONS_PATTERN = Pattern.compile(".*(люб([а-я]{2})|или).*");
 
     private static final Pattern ALL_WEAPONS_PATTERN = Pattern.compile(".*(люб([а-я]{2})).*");
-
+    //todo мб вынести в общий сервис
     public Set<Weapon> extractWeapons() {
         Document magicItems = JsoupUtil.getDocFromHref("https://dnd.su/items/");
 
@@ -37,17 +37,17 @@ public class WeaponService {
                 .getElementsByClassFromDoc("col list-item__spell for_filter", magicItems)
                 .stream()
                 .filter(this::isWeapon)
-                .map(this::weaponElement)
+                .map(this::getWeaponElement)
                 .filter(Objects::nonNull)
                 .map(this::mapToWeapon)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
-
-    private Element weaponElement(Element element) {
+    //todo мб вынести в общий сервис
+    private Element getWeaponElement(Element element) {
         return ExceptionUtils.wrapAndGetResultOrNull(() -> JsoupUtil.getItemFromElementHref(element));
     }
-
+    //todo мб вынести в общий сервис
     private boolean isWeapon(Element itemWrapper) {
         return JsoupUtil
                 .getElementsByTag(itemWrapper, "use")
@@ -57,7 +57,7 @@ public class WeaponService {
                 .allMatch(attr -> WEAPON_IMG_PATTERN.matcher(attr).matches());
 
     }
-
+    //todo мб вынести в общий сервис для предмета
     private Weapon mapToWeapon(Element element) {
         return ExceptionUtils
                 .wrapAndGetResultOrNull(() -> {
@@ -80,7 +80,7 @@ public class WeaponService {
                     return weapon;
                 });
     }
-
+    //todo мб вынести в общий сервис, в абстрактный метод
     private Set<WeaponCore> extractWeaponCores(Element wrapper) {
         Element elementByClass = JsoupUtil.getElementByClassFromElement(wrapper, "size-type-alignment");
 
@@ -88,7 +88,7 @@ public class WeaponService {
             return Set.of();
         }
 
-        String abstractClassName = extractWeaponAbstractClassName(elementByClass.text());
+        String abstractClassName = extractWeaponAbstractClassName(prepareHtmlText(elementByClass.text()));
 
         if (abstractClassName.contains("ALL")) {
             String clearedAbstractName = clearAllFlag(abstractClassName);
@@ -109,7 +109,11 @@ public class WeaponService {
                     .collect(Collectors.toSet());
         }
     }
-
+    //todo вынести в утиль
+    private String prepareHtmlText(String text) {
+        return text.replace((char) 8201, (char) 32);
+    }
+    //todo мб вынести в общий сервис, в абстрактный метод
     private WeaponCore extractWeaponCore(String splitAbstractClassName) {
         String strippedClassName = splitAbstractClassName.strip();
 
@@ -124,7 +128,7 @@ public class WeaponService {
 
         throw new IllegalArgumentException("Core class not found!");
     }
-
+    //todo мб вынести в общий сервис, в абстрактный метод
     private String clearAllFlag(String abstractClassName) {
         String stringAllMatcher = Optional
                 .of(FOR_CLEAR_FLAG_ALL_PATTERN.matcher(abstractClassName))
@@ -137,7 +141,7 @@ public class WeaponService {
                 .replace("ALL", "")
                 .replace("или", ",");
     }
-
+    //todo мб вынести в общий сервис, в абстрактный метод
     private Set<WeaponCore> getWeaponCoresByClass(String abstractTypes) {
         return switch (abstractTypes.toLowerCase(Locale.ROOT)) {
             case "арбалет" -> Set.of(LIGHTWEIGHT_CROSSBOW, HAND_CROSSBOW, HEAVY_CROSSBOW);
@@ -176,7 +180,7 @@ public class WeaponService {
                 .filter(weaponCore -> weaponCore.getName().equalsIgnoreCase(abstractTypes))
                 .collect(Collectors.toSet());
     }
-
+    //todo изменить имя на hint
     private String extractWeaponAbstractClassName(String text) {
         Matcher weaponMatcher = WEAPON_MATCHER_PATTERN.matcher(text);
 

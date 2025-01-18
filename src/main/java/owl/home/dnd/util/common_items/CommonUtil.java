@@ -94,24 +94,30 @@ public class CommonUtil {
     public static Integer extractMaxAmount(Element wrapper) {
         return Optional.ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, "price"))
                 .map(element -> Pattern
-                        .compile(".*:\\s?(?<sum>[\\d\\-]+)\\s?[смэзп]{2}.*")
-                        .matcher(element.text()))
+                        .compile("[\\sа-я]:[\\sа-я]*(?<sum>[\\d-\\s]+)[\\sсмэзп]+")
+                        .matcher(prepareHtmlText(element.text())))
                 .filter(Matcher::find)
                 .map(matcher -> matcher.group("sum"))
                 .filter(strSum -> strSum.split("-").length == 2)
-                .map(strSum -> Integer.valueOf(strSum.split("-")[1]))
+                .map(strSum -> strSum.split("-")[1].replace(" ", ""))
+                .map(Integer::valueOf)
                 .orElse(null);
     }
 
     public static Integer extractMinAmount(Element wrapper) {
         return Optional.ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, "price"))
                 .map(element -> Pattern
-                        .compile(".*:\\s?(?<sum>[\\d\\-]+)\\s?[смэзп]{2}.*")
-                        .matcher(element.text()))
+                        .compile("[\\sа-я]:[\\sа-я]*(?<sum>[\\d-\\s]+)[\\sсмэзп]+")
+                        .matcher(prepareHtmlText(element.text())))
                 .filter(Matcher::find)
                 .map(matcher -> matcher.group("sum"))
-                .map(strSum -> Integer.valueOf(strSum.split("-")[0]))
+                .map(strSum -> strSum.split("-")[0].replace(" ", ""))
+                .map(Integer::valueOf)
                 .orElse(null);
+    }
+
+    private static CharSequence prepareHtmlText(String text) {
+        return text.replace((char) 8201, (char) 32);
     }
 
     public static String extractDescription(Element wrapper) {
@@ -129,8 +135,8 @@ public class CommonUtil {
     public static Currency extractCurrency(Element wrapper) {
         return Optional.ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, "price"))
                 .map(element -> Pattern
-                        .compile(".*:\\s?(?<sum>[\\d\\-]+)\\s?(?<currency>[смэзп]{2}).*")
-                        .matcher(element.text()))
+                        .compile("[\\sа-я]:[\\sа-я]*[\\d-\\s]+(?<currency>[\\sсмэзп]+)?")
+                        .matcher(prepareHtmlText(element.text())))
                 .filter(Matcher::find)
                 .map(matcher -> matcher.group("currency"))
                 .map(stringCurrency -> Arrays.stream(Currency.values())
