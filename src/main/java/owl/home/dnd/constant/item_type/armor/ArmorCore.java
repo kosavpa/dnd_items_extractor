@@ -1,7 +1,8 @@
-package owl.home.dnd.constant.armor;
+package owl.home.dnd.constant.item_type.armor;
 
 
 import lombok.Getter;
+import owl.home.dnd.constant.item_type.ItemType;
 import owl.home.dnd.constant.properties.kd.AgilityModifier;
 import owl.home.dnd.constant.properties.kd.ForceLimit;
 import owl.home.dnd.constant.properties.kd.Kd;
@@ -10,7 +11,7 @@ import java.util.Arrays;
 
 
 @Getter
-public enum ArmorCore {
+public enum ArmorCore implements ItemType {
     //Лёгкий доспех
     QUILTED(
             1,

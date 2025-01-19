@@ -1,4 +1,4 @@
-package owl.home.dnd.constant.armor;
+package owl.home.dnd.constant.item_type.armor;
 
 
 import lombok.Getter;

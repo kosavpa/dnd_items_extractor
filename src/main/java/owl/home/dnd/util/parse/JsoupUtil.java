@@ -43,4 +43,7 @@ public class JsoupUtil {
         return element.getElementsByClass(elementClass).stream().findFirst().orElse(null);
     }
 
+    public static String prepareHtmlTextFromElement(Element element) {
+        return element.text().replace((char) 8201, (char) 32);
+    }
 }

@@ -31,6 +31,7 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	implementation("org.jsoup:jsoup:1.18.1")
+	implementation("org.apache.commons:commons-lang3:3.12.0")
 }
 
 tasks.withType<Test> {

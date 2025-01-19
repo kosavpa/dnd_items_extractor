@@ -1,7 +1,7 @@
 package owl.home.dnd.entitys;
 
 
-import owl.home.dnd.constant.weapon.WeaponCore;
+import owl.home.dnd.constant.item_type.weapon.WeaponCore;
 
 import java.util.Set;
 import java.util.stream.Collectors;

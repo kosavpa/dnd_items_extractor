@@ -1,8 +1,9 @@
-package owl.home.dnd.constant.weapon;
+package owl.home.dnd.constant.item_type.weapon;
 
 
 import lombok.Getter;
 import owl.home.dnd.constant.equip.Dice;
+import owl.home.dnd.constant.item_type.ItemType;
 import owl.home.dnd.constant.properties.PropertyHolder;
 import owl.home.dnd.constant.properties.damage.Damage;
 import owl.home.dnd.constant.properties.damage.DamageType;
@@ -13,11 +14,11 @@ import java.util.Set;
 
 import static owl.home.dnd.constant.equip.Dice.*;
 import static owl.home.dnd.constant.properties.damage.DamageType.*;
-import static owl.home.dnd.constant.weapon.WeaponClass.*;
+import static owl.home.dnd.constant.item_type.weapon.WeaponClass.*;
 
 
 @Getter
-public enum WeaponCore {
+public enum WeaponCore implements ItemType {
     //Простое рукопашное оружие
     MAGIC_STAFF(
             0,
