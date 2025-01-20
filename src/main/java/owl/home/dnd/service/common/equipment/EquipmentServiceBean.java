@@ -92,11 +92,7 @@ public abstract class EquipmentServiceBean<T extends Equipment> implements Equip
 
     @SneakyThrows
     private T getNewConcreteTypeInstance() {
-        MethodHandle constructor = MethodHandles
-                .publicLookup()
-                .findConstructor(getConcreteEquipmentClass(), MethodType.methodType(void.class));
-
-        return getConcreteEquipmentClass().cast(constructor.invokeExact());
+        return getConcreteEquipmentClass().getConstructor().newInstance();
     }
 
     protected abstract T buildConcreteEquipment(EquipmentHint<T> equipmentHint);

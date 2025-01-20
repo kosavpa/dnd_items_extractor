@@ -8,7 +8,6 @@ import owl.home.dnd.service.common.equipment.EquipmentHint;
 import owl.home.dnd.service.common.equipment.EquipmentServiceBean;
 import owl.home.dnd.util.parse.JsoupUtil;
 
-import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -25,15 +24,15 @@ public abstract class CoreEquipmentBean<T extends Equipment, R extends ItemType>
 
         hint.fillDescription(coreDescriptionElement);
 
-        if (hint.isAll()) {
+        if (hint.isHasAll()) {
             if (hint.isWithTips()) {
-                Set<R> cores = Arrays
-                        .stream(hint.getTipsArray())
+                Set<R> cores = hint.getTipsSet()
+                        .stream()
                         .filter(tip -> !tip.isBlank())
                         .flatMap(tip -> getCoresByTip(tip).stream())
                         .collect(Collectors.toSet());
 
-                if (hint.isExclude()) {
+                if (hint.isHasExclude()) {
                     excludeCores(cores, hint);
                 }
 
@@ -42,8 +41,8 @@ public abstract class CoreEquipmentBean<T extends Equipment, R extends ItemType>
                 return getCoreAllCores();
             }
         } else {
-            return Arrays
-                    .stream(hint.getNamesArray())
+            return hint.getNamesSet()
+                    .stream()
                     .flatMap(name -> getCoreByName(name).stream())
                     .collect(Collectors.toSet());
         }

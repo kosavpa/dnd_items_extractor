@@ -2,27 +2,32 @@ package owl.home.dnd.service.common.equipment;
 
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.jsoup.nodes.Element;
 import owl.home.dnd.entitys.Armor;
 import owl.home.dnd.entitys.Equipment;
 import owl.home.dnd.entitys.Weapon;
 import owl.home.dnd.util.parse.JsoupUtil;
 
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 
-@Data
+@Getter
+@Setter
 @Builder
 public class EquipmentHint<T extends Equipment> {
     private Element equipmentElement;
 
     private T equipment;
 
-    private boolean isAll;
+    private boolean hasAll;
 
     private boolean withTips;
 
@@ -32,7 +37,7 @@ public class EquipmentHint<T extends Equipment> {
 
     private String exclude;
 
-    private boolean isExclude;
+    private boolean hasExclude;
 
     private boolean excludeByTip;
 
@@ -54,15 +59,15 @@ public class EquipmentHint<T extends Equipment> {
     private static final Pattern EXCLUDE_FLAG_PATTERN = Pattern.compile("кроме\\s(?<exclude>[а-я]+)");
 
     //todo мыжет быть убирать пробелы здесь
-    private void normolizeTips() {
-        tips = tips
-                .replace(getAllMatcherString(), "")
+    private String normolizeTips(String tips) {
+        return tips
+                .replace(getAllMatcherString(tips), "")
                 .replace("ALL", "")
                 .replace("кроме", "")
                 .replace("или", ",");
     }
 
-    private String getAllMatcherString() {
+    private String getAllMatcherString(String tips) {
         return Optional
                 .of(FOR_CLEAR_FLAG_ALL_PATTERN.matcher(tips))
                 .filter(Matcher::find)
@@ -70,14 +75,19 @@ public class EquipmentHint<T extends Equipment> {
                 .orElse("");
     }
 
-    public String[] getTipsArray() {
-        normolizeTips();
-
-        return tips.replace(" ", "").toLowerCase().split(",");
+    public Set<String> getTipsSet() {
+        return getPreparedHitSet(tips);
     }
 
-    public String[] getNamesArray() {
-        return names.replace(" ", "").toLowerCase().split(",");
+    public Set<String> getNamesSet() {
+        return getPreparedHitSet(names);
+    }
+
+    private Set<String> getPreparedHitSet(String hint) {
+        return Arrays.stream(hint.toLowerCase().split(","))
+                .map(String::strip)
+                .filter(tip -> !tip.isBlank())
+                .collect(Collectors.toSet());
     }
 
     public void fillDescription(Element equipmentDescription) {
@@ -89,6 +99,7 @@ public class EquipmentHint<T extends Equipment> {
             throw new IllegalArgumentException();
         }
     }
+
     //todo рефакторинг метода
     private void fillArmor(String text) {
         Matcher weaponMatcher = ARMOR_MATCHER_PATTERN.matcher(text);
@@ -106,7 +117,7 @@ public class EquipmentHint<T extends Equipment> {
         Matcher excludeMatcher = EXCLUDE_FLAG_PATTERN.matcher(stringBuilder.toString());
 
         if (excludeMatcher.find()) {
-            isExclude = true;
+            hasExclude = true;
 
             String excludeFromGroup = getExcludeFromGroupAndCleanSBuilder(stringBuilder, excludeMatcher);
 
@@ -130,12 +141,16 @@ public class EquipmentHint<T extends Equipment> {
         }
 
         if (ALL_ARMOR_PATTERN_BY_CLASS.matcher(stringBuilder.toString()).find() || stringBuilder.isEmpty()) {
-            isAll = true;
+            hasAll = true;
 
             if (!stringBuilder.isEmpty()) {
-                withTips = true;
+                String normolizedTips = normolizeTips(stringBuilder.toString());
 
-                tips = stringBuilder.toString();
+                if (!normolizedTips.isBlank()) {
+                    withTips = true;
+
+                    tips = normolizedTips;
+                }
             }
         } else {
             names = stringBuilder.toString();
@@ -173,12 +188,14 @@ public class EquipmentHint<T extends Equipment> {
         }
 
         if (allMatcher.find() || joiner.length() == 0) {
-            isAll = true;
+            hasAll = true;
 
-            if (joiner.length() != 0) {
+            String normolizedTips = normolizeTips(joiner.toString());
+
+            if (!normolizedTips.isBlank()) {
                 withTips = true;
 
-                tips = joiner.toString();
+                tips = normolizedTips;
             }
         } else {
             names = joiner.toString();

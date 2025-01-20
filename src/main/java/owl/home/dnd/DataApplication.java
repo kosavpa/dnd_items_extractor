@@ -16,10 +16,9 @@ public class DataApplication {
 
     @SneakyThrows
     public static void main(String[] args) {
-        //todo проверить сервисы после рефакторинга
 //		SpringApplication.run(DataApplication.class, args);
 
-        Set<Scroll> weapons = new ScrollService().extractEquipment();
+        Set weapons = new ArmorService().extractEquipment();
 
         System.out.println(weapons.size());
     }
