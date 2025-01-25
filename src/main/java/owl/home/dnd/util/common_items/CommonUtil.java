@@ -4,8 +4,6 @@ package owl.home.dnd.util.common_items;
 import org.jsoup.nodes.Element;
 import owl.home.dnd.constant.equip.Currency;
 import owl.home.dnd.constant.equip.Rarity;
-import owl.home.dnd.constant.game_class.GameClass;
-import owl.home.dnd.constant.race.Racy;
 import owl.home.dnd.util.parse.JsoupUtil;
 
 import java.util.Arrays;
@@ -20,49 +18,21 @@ public class CommonUtil {
 
     public static final String SIZE_TYPE_ALIGNMENT = "size-type-alignment";
 
-    public static final String PREPARED_PATTERN = "требуется настройка%s";
-
-    public static GameClass extractPreparedClass(Element wrapper) {
-        return getPreparedDescription(wrapper).flatMap(preparedDescription -> Arrays
-                        .stream(GameClass.values())
-                        .filter(gameClass -> preparedDescription.contains(
-                                toLowerAndRemoveLastCharacter(gameClass.getName())))
-                        .findFirst())
-                .orElse(null);
-    }
-
-    public static Racy extractPreparedRacy(Element wrapper) {
-        return getPreparedDescription(wrapper).flatMap(preparedDescription -> Arrays
-                        .stream(Racy.values())
-                        .filter(racy -> preparedDescription.contains(toLowerAndRemoveLastCharacter(racy.getName())))
-                        .findFirst())
-                .orElse(null);
-    }
-
-    private static String toLowerAndRemoveLastCharacter(String name) {
-        return name.toLowerCase().substring(0, name.length() - 1);
-    }
-
-    private static Optional<String> getPreparedDescription(Element wrapper) {
-        return Optional.ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, SIZE_TYPE_ALIGNMENT))
-                .map(element -> Pattern
-                        .compile(PREPARED_PATTERN.formatted("\\s?(?<preparedDescription>[а-яА-Я\\s,]+)"))
-                        .matcher(element.text()))
-                .filter(Matcher::find)
-                .map(matcher -> matcher.group("preparedDescription"));
-    }
-
-    public static boolean extractPrepared(String rawPreparedHtmlText) {
-        return Optional.ofNullable(rawPreparedHtmlText)
+    public static boolean extractPrepared(Element wrapper) {
+        return Optional
+                .ofNullable(wrapper)
+                .map(element -> JsoupUtil.getElementByClassFromElement(element, SIZE_TYPE_ALIGNMENT))
+                .map(JsoupUtil::prepareHtmlTextFromElement)
                 .map(rawText -> Pattern
-                        .compile(PREPARED_PATTERN.formatted(".*"))
+                        .compile("требуется настройка.*")
                         .matcher(rawText))
                 .map(Matcher::find)
                 .orElse(false);
     }
 
     public static Rarity extractRarity(Element wrapper) {
-        return Optional.ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, SIZE_TYPE_ALIGNMENT))
+        return Optional
+                .ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, SIZE_TYPE_ALIGNMENT))
                 .map(element -> Pattern
                         .compile("Оружие\\s(\\()?[а-я\\sё,]+(\\))?(?<rarity>,.*)")
                         .matcher(element.text()))
@@ -80,7 +50,8 @@ public class CommonUtil {
         String splitRarityString = strWithRarity.replace(",", "");
 
         if (!splitRarityString.toLowerCase().contains(Rarity.VOLATILE.getName().toLowerCase())) {
-            return Arrays.stream(Rarity.values())
+            return Arrays
+                    .stream(Rarity.values())
                     .filter(rarity -> rarity
                             .getName()
                             .toLowerCase()
@@ -95,7 +66,8 @@ public class CommonUtil {
     }
 
     public static Integer extractMaxAmount(Element wrapper) {
-        return Optional.ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, "price"))
+        return Optional
+                .ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, "price"))
                 .map(element -> Pattern
                         .compile("[\\sа-я]:[\\sа-я]*(?<sum>[\\d-\\s]+)[\\sсмэзп]+")
                         .matcher(prepareHtmlText(element.text())))
@@ -108,7 +80,8 @@ public class CommonUtil {
     }
 
     public static Integer extractMinAmount(Element wrapper) {
-        return Optional.ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, "price"))
+        return Optional
+                .ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, "price"))
                 .map(element -> Pattern
                         .compile("[\\sа-я]:[\\sа-я]*(?<sum>[\\d-\\s]+)[\\sсмэзп]+")
                         .matcher(prepareHtmlText(element.text())))
@@ -124,19 +97,22 @@ public class CommonUtil {
     }
 
     public static String extractDescription(Element wrapper) {
-        return Optional.ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, "subsection desc"))
+        return Optional
+                .ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, "subsection desc"))
                 .map(Element::text)
                 .orElse(null);
     }
 
     public static String extractName(Element wrapper) {
-        return Optional.ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, "card-title"))
+        return Optional
+                .ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, "card-title"))
                 .map(Element::text)
                 .orElseThrow();
     }
 
     public static Currency extractCurrency(Element wrapper) {
-        return Optional.ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, "price"))
+        return Optional
+                .ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, "price"))
                 .map(element -> Pattern
                         .compile("[\\sа-я]:[\\sа-я]*[\\d-\\s]+(?<currency>[\\sсмэзп]+)?")
                         .matcher(prepareHtmlText(element.text())))
