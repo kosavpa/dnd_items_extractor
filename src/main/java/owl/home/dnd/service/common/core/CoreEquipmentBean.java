@@ -26,7 +26,8 @@ public abstract class CoreEquipmentBean<T extends Equipment, R extends ItemType>
 
         if (hint.isHasAll()) {
             if (hint.isWithTips()) {
-                Set<R> cores = hint.getTipsSet()
+                Set<R> cores = hint
+                        .getTipsSet()
                         .stream()
                         .filter(tip -> !tip.isBlank())
                         .flatMap(tip -> getCoresByTip(tip).stream())

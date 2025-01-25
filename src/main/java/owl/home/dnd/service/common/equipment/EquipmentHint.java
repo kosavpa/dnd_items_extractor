@@ -8,6 +8,7 @@ import org.jsoup.nodes.Element;
 import owl.home.dnd.entitys.Armor;
 import owl.home.dnd.entitys.Equipment;
 import owl.home.dnd.entitys.Weapon;
+import owl.home.dnd.util.common_items.CommonUtil;
 import owl.home.dnd.util.parse.JsoupUtil;
 
 import java.util.Arrays;
@@ -41,6 +42,20 @@ public class EquipmentHint<T extends Equipment> {
 
     private boolean excludeByTip;
 
+    private boolean hasPrepared;
+
+    private boolean hasExcludeRacys;
+
+    private boolean hasExcludeGameClasses;
+
+    private String racys;
+
+    private String gameClasses;
+
+    private String excludeRacys;
+
+    private String excludeGameClasses;
+
     private static final Pattern FOR_CLEAR_FLAG_ALL_PATTERN = Pattern.compile("(?<all>люб([а-я]{2}))");
 
     private static final Pattern WEAPON_MATCHER_PATTERN = Pattern
@@ -58,7 +73,6 @@ public class EquipmentHint<T extends Equipment> {
 
     private static final Pattern EXCLUDE_FLAG_PATTERN = Pattern.compile("кроме\\s(?<exclude>[а-я]+)");
 
-    //todo мыжет быть убирать пробелы здесь
     private String normolizeTips(String tips) {
         return tips
                 .replace(getAllMatcherString(tips), "")
@@ -91,13 +105,61 @@ public class EquipmentHint<T extends Equipment> {
     }
 
     public void fillDescription(Element equipmentDescription) {
+        String preparedText = JsoupUtil.prepareHtmlTextFromElement(equipmentDescription);
+
         if (equipment instanceof Weapon) {
-            fillWeapon(JsoupUtil.prepareHtmlTextFromElement(equipmentDescription));
+            fillWeapon(preparedText);
         } else if (equipment instanceof Armor) {
-            fillArmor(JsoupUtil.prepareHtmlTextFromElement(equipmentDescription));
-        } else {
-            throw new IllegalArgumentException();
+            fillArmor(preparedText);
         }
+
+        fillCommon(preparedText);
+    }
+
+    private void fillCommon(String preparedText) {
+        hasPrepared = CommonUtil.extractPrepared(preparedText);
+
+        if (hasPrepared) {
+            //todo расы должны разделяться символом, если их несколько, должны проходить проверку имени contains с
+            //todo существующими
+            racys =;
+            //todo тоже что и с рассами
+            gameClasses =;
+
+            hasExcludeRacys =;
+
+            if (hasExcludeRacys) {
+                //todo тоже что и с рассами
+                excludeRacys =;
+            }
+
+            hasExcludeGameClasses =;
+
+            if (hasExcludeGameClasses) {
+                //todo тоже что и с рассами
+                excludeGameClasses =;
+            }
+        }
+    }
+    //todo тоже что и с рассами
+    public Set<String> getRacys() {
+        //todo...
+        return null;
+    }
+    //todo тоже что и с рассами
+    public Set<String> getGameClasses() {
+        //todo...
+        return null;
+    }
+    //todo тоже что и с рассами
+    public Set<String> getExcludeRacys() {
+        //todo...
+        return null;
+    }
+    //todo тоже что и с рассами
+    public Set<String> getExcludeGameClasses() {
+        //todo...
+        return null;
     }
 
     //todo рефакторинг метода

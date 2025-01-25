@@ -18,7 +18,9 @@ public class CommonUtil {
     private CommonUtil() {
     }
 
-    private static final String SIZE_TYPE_ALIGNMENT = "size-type-alignment";
+    public static final String SIZE_TYPE_ALIGNMENT = "size-type-alignment";
+
+    public static final String PREPARED_PATTERN = "требуется настройка%s";
 
     public static GameClass extractPreparedClass(Element wrapper) {
         return getPreparedDescription(wrapper).flatMap(preparedDescription -> Arrays
@@ -44,17 +46,17 @@ public class CommonUtil {
     private static Optional<String> getPreparedDescription(Element wrapper) {
         return Optional.ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, SIZE_TYPE_ALIGNMENT))
                 .map(element -> Pattern
-                        .compile("требуется настройка(?<preparedDescription>.*)")
+                        .compile(PREPARED_PATTERN.formatted("\\s?(?<preparedDescription>[а-яА-Я\\s,]+)"))
                         .matcher(element.text()))
                 .filter(Matcher::find)
                 .map(matcher -> matcher.group("preparedDescription"));
     }
 
-    public static boolean extractPrepared(Element wrapper) {
-        return Optional.ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, SIZE_TYPE_ALIGNMENT))
-                .map(element -> Pattern
-                        .compile("требуется настройка.*")
-                        .matcher(element.text()))
+    public static boolean extractPrepared(String rawPreparedHtmlText) {
+        return Optional.ofNullable(rawPreparedHtmlText)
+                .map(rawText -> Pattern
+                        .compile(PREPARED_PATTERN.formatted(".*"))
+                        .matcher(rawText))
                 .map(Matcher::find)
                 .orElse(false);
     }
