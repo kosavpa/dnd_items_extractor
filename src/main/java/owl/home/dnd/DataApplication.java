@@ -6,6 +6,7 @@ import owl.home.dnd.entitys.Armor;
 import owl.home.dnd.entitys.Scroll;
 import owl.home.dnd.entitys.Weapon;
 import owl.home.dnd.service.armor.ArmorService;
+import owl.home.dnd.service.potion.PotionService;
 import owl.home.dnd.service.scroll.ScrollService;
 import owl.home.dnd.service.weapon.WeaponService;
 
@@ -18,7 +19,7 @@ public class DataApplication {
     public static void main(String[] args) {
 //		SpringApplication.run(DataApplication.class, args);
 
-        Set weapons = new ArmorService().extractEquipment();
+        Set weapons = new PotionService().extractEquipment();
 
         System.out.println(weapons.size());
     }

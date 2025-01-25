@@ -6,6 +6,7 @@ import owl.home.dnd.constant.item_type.weapon.WeaponCore;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+
 public class Weapon extends Equipment {
     private Set<Integer> weaponCores;
 

@@ -10,9 +10,9 @@ import owl.home.dnd.constant.race.Racy;
 
 import java.util.Optional;
 
+
 @Getter
 @Setter
-
 public abstract class Equipment {
     private String name;
 

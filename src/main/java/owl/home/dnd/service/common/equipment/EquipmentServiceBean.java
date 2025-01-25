@@ -10,9 +10,6 @@ import owl.home.dnd.util.common_items.CommonUtil;
 import owl.home.dnd.util.exception.ExceptionUtils;
 import owl.home.dnd.util.parse.JsoupUtil;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
