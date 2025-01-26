@@ -34,7 +34,10 @@ public class CommonUtil {
         return Optional
                 .ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, SIZE_TYPE_ALIGNMENT))
                 .map(element -> Pattern
-                        .compile("Оружие\\s(\\()?[а-я\\sё,]+(\\))?(?<rarity>,.*)")
+                        .compile(
+                                "(?<rarity>" +
+                                        "(обычн|необычн|редк|очень\\sредк|легендарн|артефакт|редкость\\sварьируется)" +
+                                        "(ый|ий|ое)?)")
                         .matcher(element.text()))
                 .filter(Matcher::find)
                 .map(matcher -> matcher.group("rarity"))
@@ -43,25 +46,19 @@ public class CommonUtil {
     }
 
     private static Rarity extractRarityFromStr(String strWithRarity) {
-        if (strWithRarity.contains("(")) {
-            strWithRarity = strWithRarity.substring(0, strWithRarity.indexOf("("));
-        }
+        if ("редкость варьируется".equalsIgnoreCase(strWithRarity)) {
+            return Rarity.VOLATILE;
+        } else {
+            String preparedRarityStr = strWithRarity.substring(0, strWithRarity.length() - 2).strip();
 
-        String splitRarityString = strWithRarity.replace(",", "");
-
-        if (!splitRarityString.toLowerCase().contains(Rarity.VOLATILE.getName().toLowerCase())) {
             return Arrays
                     .stream(Rarity.values())
                     .filter(rarity -> rarity
                             .getName()
                             .toLowerCase()
-                            .contains(splitRarityString
-                                    .substring(0, splitRarityString.length() - 3)
-                                    .strip()))
+                            .contains(preparedRarityStr))
                     .findFirst()
                     .orElseThrow();
-        } else {
-            return Rarity.VOLATILE;
         }
     }
 
@@ -70,7 +67,7 @@ public class CommonUtil {
                 .ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, "price"))
                 .map(element -> Pattern
                         .compile("[\\sа-я]:[\\sа-я]*(?<sum>[\\d-\\s]+)[\\sсмэзп]+")
-                        .matcher(prepareHtmlText(element.text())))
+                        .matcher(JsoupUtil.prepareHtmlTextFromElement(element)))
                 .filter(Matcher::find)
                 .map(matcher -> matcher.group("sum"))
                 .filter(strSum -> strSum.split("-").length == 2)
@@ -84,16 +81,12 @@ public class CommonUtil {
                 .ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, "price"))
                 .map(element -> Pattern
                         .compile("[\\sа-я]:[\\sа-я]*(?<sum>[\\d-\\s]+)[\\sсмэзп]+")
-                        .matcher(prepareHtmlText(element.text())))
+                        .matcher(JsoupUtil.prepareHtmlTextFromElement(element)))
                 .filter(Matcher::find)
                 .map(matcher -> matcher.group("sum"))
                 .map(strSum -> strSum.split("-")[0].replace(" ", ""))
                 .map(Integer::valueOf)
                 .orElse(null);
-    }
-
-    private static CharSequence prepareHtmlText(String text) {
-        return text.replace((char) 8201, (char) 32);
     }
 
     public static String extractDescription(Element wrapper) {
@@ -115,7 +108,7 @@ public class CommonUtil {
                 .ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, "price"))
                 .map(element -> Pattern
                         .compile("[\\sа-я]:[\\sа-я]*[\\d-\\s]+(?<currency>[\\sсмэзп]+)?")
-                        .matcher(prepareHtmlText(element.text())))
+                        .matcher(JsoupUtil.prepareHtmlTextFromElement(element)))
                 .filter(Matcher::find)
                 .map(matcher -> matcher.group("currency"))
                 .map(stringCurrency -> Arrays.stream(Currency.values())
