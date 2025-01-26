@@ -17,7 +17,7 @@ import static owl.home.dnd.constant.item_type.weapon.WeaponCore.*;
 public class WeaponService extends CoreEquipmentBean<Weapon, WeaponCore> {
     @Override
     protected Weapon buildConcreteEquipment(EquipmentHint<Weapon> equipmentHint) {
-        Weapon weapon = equipmentHint.getEquipment();
+        Weapon weapon = super.buildConcreteEquipment(equipmentHint);
 
         weapon.setWeaponCores(extractCoresByHint(equipmentHint));
 
@@ -61,7 +61,6 @@ public class WeaponService extends CoreEquipmentBean<Weapon, WeaponCore> {
 
     @Override
     protected Set<WeaponCore> getCoresByTip(String tip) {
-        //todo может по другому переписать switch?
         return switch (tip) {
             case "арбалет" -> Set.of(LIGHTWEIGHT_CROSSBOW, HAND_CROSSBOW, HEAVY_CROSSBOW);
             case "меч" -> Set.of(GREATSWORD, LONG_SWORD, SHORT_SWORD);

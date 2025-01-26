@@ -26,6 +26,8 @@ public abstract class Equipment {
 
     private boolean isNeedPrepared;
 
+    private String link;
+
     public Currency getCurrency() {
         return Optional
                 .ofNullable(this.currency)

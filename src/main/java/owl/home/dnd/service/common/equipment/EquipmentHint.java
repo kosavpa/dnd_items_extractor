@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.jsoup.nodes.Element;
+import owl.home.dnd.constant.equip.Currency;
+import owl.home.dnd.constant.equip.Rarity;
 import owl.home.dnd.entitys.Armor;
 import owl.home.dnd.entitys.Equipment;
 import owl.home.dnd.entitys.Weapon;
@@ -17,6 +19,8 @@ import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static owl.home.dnd.util.constant.Constants.*;
 
 
 @Getter
@@ -41,22 +45,21 @@ public class EquipmentHint<T extends Equipment> {
 
     private boolean excludeByTip;
 
-    private static final Pattern FOR_CLEAR_FLAG_ALL_PATTERN = Pattern.compile("(?<all>люб([а-я]{2}))");
+    private Currency currency;
 
-    private static final Pattern WEAPON_MATCHER_PATTERN = Pattern
-            .compile("Оружие\\s(?<weapon>(\\([а-я\\sё,]+\\))|([а-я\\sё,]+))");
+    private boolean hasNeedPrepared;
 
-    private static final Pattern ALL_FROM_MANY_WEAPONS_PATTERN = Pattern.compile(".*(люб([а-я]{2})|или).*");
+    private Rarity rarity;
 
-    private static final Pattern ALL_WEAPONS_PATTERN = Pattern.compile(".*(люб([а-я]{2})).*");
+    private String equipmentDescription;
 
-    private static final Pattern ARMOR_MATCHER_PATTERN = Pattern
-            .compile("Доспех\\s(?<armor>(\\([а-я\\sё,]+\\))|([а-я\\sё,]+))");
+    private Integer maxAmount;
 
-    private static final Pattern ALL_ARMOR_PATTERN_BY_CLASS = Pattern
-            .compile("(?<lung>легк[а-я]+)|(?<middle>средн[а-я]+)|(?<heavy>тяжел[а-я]+)");
+    private Integer minAmount;
 
-    private static final Pattern EXCLUDE_FLAG_PATTERN = Pattern.compile("кроме\\s(?<exclude>[а-я]+)");
+    private String equipmentName;
+
+    private String equipmentLink;
 
     private String normolizeTips(String tips) {
         return tips
@@ -101,7 +104,6 @@ public class EquipmentHint<T extends Equipment> {
         }
     }
 
-    //todo рефакторинг метода
     private void fillArmor(String text) {
         Matcher weaponMatcher = ARMOR_MATCHER_PATTERN.matcher(text);
 
@@ -118,43 +120,55 @@ public class EquipmentHint<T extends Equipment> {
         Matcher excludeMatcher = EXCLUDE_FLAG_PATTERN.matcher(stringBuilder.toString());
 
         if (excludeMatcher.find()) {
-            hasExclude = true;
-
-            String excludeFromGroup = getExcludeFromGroupAndCleanSBuilder(stringBuilder, excludeMatcher);
-
-            Matcher excludeTipMatcher = ALL_ARMOR_PATTERN_BY_CLASS.matcher(excludeFromGroup);
-
-            if (excludeTipMatcher.find()) {
-                excludeByTip = true;
-
-                if (excludeTipMatcher.group("lung") != null) {
-                    exclude = "легкий";
-                } else if (excludeTipMatcher.group("middle") != null) {
-                    exclude = "средний";
-                } else if (excludeTipMatcher.group("heavy") != null) {
-                    exclude = "тяжёлый";
-                } else {
-                    throw new IllegalArgumentException();
-                }
-            } else {
-                exclude = excludeFromGroup.substring(0, excludeFromGroup.length() - 4).toLowerCase();
-            }
+            handleExclude(stringBuilder, excludeMatcher);
         }
 
         if (ALL_ARMOR_PATTERN_BY_CLASS.matcher(stringBuilder.toString()).find() || stringBuilder.isEmpty()) {
             hasAll = true;
 
             if (!stringBuilder.isEmpty()) {
-                String normolizedTips = normolizeTips(stringBuilder.toString());
-
-                if (!normolizedTips.isBlank()) {
-                    withTips = true;
-
-                    tips = normolizedTips;
-                }
+                fillTips(stringBuilder);
             }
         } else {
             names = stringBuilder.toString();
+        }
+    }
+
+    private void handleExclude(StringBuilder stringBuilder, Matcher excludeMatcher) {
+        hasExclude = true;
+
+        fillExcludeForArmor(stringBuilder, excludeMatcher);
+    }
+
+    private void fillTips(StringBuilder stringBuilder) {
+        String normolizedTips = normolizeTips(stringBuilder.toString());
+
+        if (!normolizedTips.isBlank()) {
+            withTips = true;
+
+            tips = normolizedTips;
+        }
+    }
+
+    private void fillExcludeForArmor(StringBuilder stringBuilder, Matcher excludeMatcher) {
+        String excludeFromGroup = getExcludeFromGroupAndCleanSBuilder(stringBuilder, excludeMatcher);
+
+        Matcher excludeTipMatcher = ALL_ARMOR_PATTERN_BY_CLASS.matcher(excludeFromGroup);
+
+        if (excludeTipMatcher.find()) {
+            excludeByTip = true;
+
+            if (excludeTipMatcher.group("lung") != null) {
+                exclude = "легкий";
+            } else if (excludeTipMatcher.group("middle") != null) {
+                exclude = "средний";
+            } else if (excludeTipMatcher.group("heavy") != null) {
+                exclude = "тяжёлый";
+            } else {
+                throw new IllegalArgumentException();
+            }
+        } else {
+            exclude = excludeFromGroup.substring(0, excludeFromGroup.length() - 4).toLowerCase();
         }
     }
 
@@ -189,17 +203,137 @@ public class EquipmentHint<T extends Equipment> {
         }
 
         if (allMatcher.find() || joiner.length() == 0) {
-            hasAll = true;
-
-            String normolizedTips = normolizeTips(joiner.toString());
-
-            if (!normolizedTips.isBlank()) {
-                withTips = true;
-
-                tips = normolizedTips;
-            }
+            handleTipsForWeapon(joiner);
         } else {
             names = joiner.toString();
         }
+    }
+
+    private void handleTipsForWeapon(StringJoiner joiner) {
+        hasAll = true;
+
+        String normolizedTips = normolizeTips(joiner.toString());
+
+        if (!normolizedTips.isBlank()) {
+            withTips = true;
+
+            tips = normolizedTips;
+        }
+    }
+
+    public void fillCommonDescription() {
+        currency = extractCurrency(equipmentElement);
+
+        equipmentName = extractName(equipmentElement);
+
+        minAmount = extractMinAmount(equipmentElement);
+
+        maxAmount = extractMaxAmount(equipmentElement);
+
+        equipmentDescription = extractDescription(equipmentElement);
+
+        rarity = extractRarity(equipmentElement);
+
+        hasNeedPrepared = extractPrepared(equipmentElement);
+    }
+
+    public static boolean extractPrepared(Element wrapper) {
+        return Optional
+                .ofNullable(wrapper)
+                .map(element -> JsoupUtil.getElementByClassFromElement(element, SIZE_TYPE_ALIGNMENT))
+                .map(JsoupUtil::prepareHtmlTextFromElement)
+                .map(rawText -> Pattern
+                        .compile("требуется настройка.*")
+                        .matcher(rawText))
+                .map(Matcher::find)
+                .orElse(false);
+    }
+
+    private Rarity extractRarity(Element wrapper) {
+        return Optional
+                .ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, SIZE_TYPE_ALIGNMENT))
+                .map(element -> Pattern
+                        .compile(
+                                "(?<rarity>" +
+                                        "(обычн|необычн|редк|очень\\sредк|легендарн|артефакт|редкость\\sварьируется)" +
+                                        "(ый|ий|ое)?)")
+                        .matcher(element.text()))
+                .filter(Matcher::find)
+                .map(matcher -> matcher.group("rarity"))
+                .map(this::extractRarityFromStr)
+                .orElse(null);
+    }
+
+    private Rarity extractRarityFromStr(String strWithRarity) {
+        if ("редкость варьируется".equalsIgnoreCase(strWithRarity)) {
+            return Rarity.VOLATILE;
+        } else {
+            String preparedRarityStr = strWithRarity.substring(0, strWithRarity.length() - 2).strip();
+
+            return Arrays
+                    .stream(Rarity.values())
+                    .filter(eRarity -> eRarity
+                            .getName()
+                            .toLowerCase()
+                            .contains(preparedRarityStr))
+                    .findFirst()
+                    .orElseThrow();
+        }
+    }
+
+    private Integer extractMaxAmount(Element wrapper) {
+        return Optional
+                .ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, "price"))
+                .map(element -> Pattern
+                        .compile("[\\sа-я]:[\\sа-я]*(?<sum>[\\d-\\s]+)[\\sсмэзп]+")
+                        .matcher(JsoupUtil.prepareHtmlTextFromElement(element)))
+                .filter(Matcher::find)
+                .map(matcher -> matcher.group("sum"))
+                .filter(strSum -> strSum.split("-").length == 2)
+                .map(strSum -> strSum.split("-")[1].replace(" ", ""))
+                .map(Integer::valueOf)
+                .orElse(null);
+    }
+
+    private Integer extractMinAmount(Element wrapper) {
+        return Optional
+                .ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, "price"))
+                .map(element -> Pattern
+                        .compile("[\\sа-я]:[\\sа-я]*(?<sum>[\\d-\\s]+)[\\sсмэзп]+")
+                        .matcher(JsoupUtil.prepareHtmlTextFromElement(element)))
+                .filter(Matcher::find)
+                .map(matcher -> matcher.group("sum"))
+                .map(strSum -> strSum.split("-")[0].replace(" ", ""))
+                .map(Integer::valueOf)
+                .orElse(null);
+    }
+
+    private String extractDescription(Element wrapper) {
+        return Optional
+                .ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, "subsection desc"))
+                .map(Element::text)
+                .orElse(null);
+    }
+
+    private String extractName(Element wrapper) {
+        return Optional
+                .ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, "card-title"))
+                .map(Element::text)
+                .orElseThrow();
+    }
+
+    private Currency extractCurrency(Element wrapper) {
+        return Optional
+                .ofNullable(JsoupUtil.getElementByClassFromElement(wrapper, "price"))
+                .map(element -> Pattern
+                        .compile("[\\sа-я]:[\\sа-я]*[\\d-\\s]+(?<currency>[\\sсмэзп]+)?")
+                        .matcher(JsoupUtil.prepareHtmlTextFromElement(element)))
+                .filter(Matcher::find)
+                .map(matcher -> matcher.group("currency"))
+                .map(stringCurrency -> Arrays.stream(Currency.values())
+                        .filter(strCurrency -> strCurrency.getName().equals(stringCurrency))
+                        .findFirst()
+                        .orElseThrow())
+                .orElse(null);
     }
 }

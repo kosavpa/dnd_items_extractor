@@ -2,6 +2,7 @@ package owl.home.dnd.util.parse;
 
 
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -29,12 +30,14 @@ public class JsoupUtil {
         return document.getElementsByClass(className).stream().findFirst().orElseThrow();
     }
 
-    public static Element getItemFromElementHref(Element wrapper) {
+    public static Pair<String, Element> getItemFromElementHref(Element wrapper) {
         return wrapper
                 .stream()
                 .map(element -> getElementByClassFromElement(element, "list-item-wrapper"))
-                .map(element -> getDocFromHref(element.attr("abs:href")))
-                .map(document -> getElementByClassFromDoc("cards-wrapper", document))
+                .map(element -> Pair.of(
+                        element.attr("abs:href"),
+                        getDocFromHref(element.attr("abs:href"))))
+                .map(pair -> Pair.of(pair.getKey(), getElementByClassFromDoc("cards-wrapper", pair.getValue())))
                 .findFirst()
                 .orElseThrow();
     }

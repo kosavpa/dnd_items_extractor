@@ -2,11 +2,11 @@ package owl.home.dnd.service.common.equipment;
 
 
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.util.Strings;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import owl.home.dnd.entitys.Equipment;
-import owl.home.dnd.util.common_items.CommonUtil;
 import owl.home.dnd.util.exception.ExceptionUtils;
 import owl.home.dnd.util.parse.JsoupUtil;
 
@@ -45,7 +45,7 @@ public abstract class EquipmentServiceBean<T extends Equipment> implements Equip
                 .allMatch(attr -> getConcretTypePattern().matcher(attr).matches());
     }
 
-    protected Element getEquipmentElement(Element element) {
+    protected Pair<String, Element> getEquipmentElement(Element element) {
         return ExceptionUtils.wrapAndGetResultOrNull(() -> JsoupUtil.getItemFromElementHref(element));
     }
 
@@ -55,31 +55,18 @@ public abstract class EquipmentServiceBean<T extends Equipment> implements Equip
         return Pattern.compile(concreteTypeSvg);
     }
 
-    private T mapToConcreteEquipment(Element element) {
-        return ExceptionUtils.wrapAndGetResultOrNull(() -> buildConcreteEquipment(getEquipmentHint(element)));
+    private T mapToConcreteEquipment(Pair<String, Element> stringElementPair) {
+        return ExceptionUtils.wrapAndGetResultOrNull(() -> buildConcreteEquipment(getEquipmentHint(stringElementPair)));
     }
 
     @SuppressWarnings("unchecked")
-    protected EquipmentHint<T> getEquipmentHint(Element element) {
+    protected EquipmentHint<T> getEquipmentHint(Pair<String, Element> stringElementPair) {
         return (EquipmentHint<T>) EquipmentHint
                 .builder()
-                .equipmentElement(element)
-                .equipment(getAbstractEquipment(element))
+                .equipmentElement(stringElementPair.getValue())
+                .equipmentLink(stringElementPair.getKey())
+                .equipment(getNewConcreteTypeInstance())
                 .build();
-    }
-
-    private T getAbstractEquipment(Element element) {
-        T abstractEquipment = getNewConcreteTypeInstance();
-
-        abstractEquipment.setCurrency(CommonUtil.extractCurrency(element));
-        abstractEquipment.setName(CommonUtil.extractName(element));
-        abstractEquipment.setMinAmount(CommonUtil.extractMinAmount(element));
-        abstractEquipment.setMaxAmount(CommonUtil.extractMaxAmount(element));
-        abstractEquipment.setDescription(CommonUtil.extractDescription(element));
-        abstractEquipment.setRarity(CommonUtil.extractRarity(element));
-        abstractEquipment.setNeedPrepared(CommonUtil.extractPrepared(element));
-
-        return abstractEquipment;
     }
 
     @SneakyThrows
@@ -87,7 +74,22 @@ public abstract class EquipmentServiceBean<T extends Equipment> implements Equip
         return getConcreteEquipmentClass().getConstructor().newInstance();
     }
 
-    protected abstract T buildConcreteEquipment(EquipmentHint<T> equipmentHint);
+    protected T buildConcreteEquipment(EquipmentHint<T> equipmentHint) {
+        equipmentHint.fillCommonDescription();
+
+        T equipment = equipmentHint.getEquipment();
+
+        equipment.setNeedPrepared(equipmentHint.isHasNeedPrepared());
+        equipment.setCurrency(equipmentHint.getCurrency());
+        equipment.setName(equipmentHint.getEquipmentName());
+        equipment.setDescription(equipmentHint.getEquipmentDescription());
+        equipment.setRarity(equipmentHint.getRarity());
+        equipment.setMaxAmount(equipmentHint.getMaxAmount());
+        equipment.setMinAmount(equipmentHint.getMinAmount());
+        equipment.setLink(equipmentHint.getEquipmentLink());
+
+        return equipment;
+    }
 
     protected abstract Class<T> getConcreteEquipmentClass();
 

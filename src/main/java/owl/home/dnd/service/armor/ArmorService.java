@@ -47,7 +47,7 @@ public class ArmorService extends CoreEquipmentBean<Armor, ArmorCore> {
 
     @Override
     protected Armor buildConcreteEquipment(EquipmentHint<Armor> equipmentHint) {
-        Armor armor = equipmentHint.getEquipment();
+        Armor armor = super.buildConcreteEquipment(equipmentHint);
 
         armor.setArmorCores(extractCoresByHint(equipmentHint));
 
