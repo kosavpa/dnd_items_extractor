@@ -1,39 +1,64 @@
 package owl.home.dnd.service.common.equipment;
 
 
+import jakarta.persistence.EntityManager;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.util.Strings;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.springframework.transaction.annotation.Transactional;
 import owl.home.dnd.entitys.Equipment;
 import owl.home.dnd.util.exception.ExceptionUtils;
 import owl.home.dnd.util.parse.JsoupUtil;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static owl.home.dnd.util.constant.Constants.DND_SOURCE_URI;
+import static owl.home.dnd.util.constant.Constants.EQUIPMENT_HTML_CLASS;
+
 
 public abstract class EquipmentServiceBean<T extends Equipment> implements EquipmentService<T> {
-    private static final String DND_SOURCE_URI = "https://dnd.su/items/";
+    protected EntityManager entityManager;
 
-    private static final String EQUIPMENT_HTML_CLASS = "col list-item__spell for_filter";
+    protected EquipmentServiceBean(EntityManager entityManager) {
+        this.entityManager = entityManager;
+    }
 
     @Override
+    @Transactional
     public Set<T> extractEquipment() {
         Document magicItems = JsoupUtil.getDocFromHref(DND_SOURCE_URI);
 
-        return JsoupUtil
-                .getElementsByClassFromDoc(EQUIPMENT_HTML_CLASS, magicItems)
-                .stream()
-                .filter(this::isNeededEquipment)
-                .map(this::getEquipmentElement)
-                .filter(Objects::nonNull)
-                .map(this::mapToConcreteEquipment)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+        Set<T> result = new HashSet<>();
+
+        int round = 4;
+
+        while (round != 0) {
+            round--;
+
+            Set<T> equipments = JsoupUtil
+                    .getElementsByClassFromDoc(EQUIPMENT_HTML_CLASS, magicItems)
+                    .stream()
+                    .filter(this::isNeededEquipment)
+                    .map(this::getEquipmentElement)
+                    .filter(Objects::nonNull)
+                    .map(this::mapToConcreteEquipment)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+
+            if (equipments.size() > result.size()) {
+                result.addAll(equipments);
+            }
+        }
+
+        result.forEach(entityManager::persist);
+
+        return result;
     }
 
     protected boolean isNeededEquipment(Element itemWrapper) {

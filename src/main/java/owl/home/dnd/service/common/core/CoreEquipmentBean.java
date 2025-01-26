@@ -1,6 +1,7 @@
 package owl.home.dnd.service.common.core;
 
 
+import jakarta.persistence.EntityManager;
 import org.jsoup.nodes.Element;
 import owl.home.dnd.constant.item_type.ItemType;
 import owl.home.dnd.entitys.Equipment;
@@ -13,6 +14,10 @@ import java.util.stream.Collectors;
 
 
 public abstract class CoreEquipmentBean<T extends Equipment, R extends ItemType> extends EquipmentServiceBean<T> {
+    protected CoreEquipmentBean(EntityManager entityManager) {
+        super(entityManager);
+    }
+
     protected Set<R> extractCoresByHint(EquipmentHint<T> hint) {
         Element coreDescriptionElement = JsoupUtil.getElementByClassFromElement(
                 hint.getEquipmentElement(),

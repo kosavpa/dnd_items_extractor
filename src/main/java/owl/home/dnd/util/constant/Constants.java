@@ -22,4 +22,8 @@ public interface Constants {
     Pattern EXCLUDE_FLAG_PATTERN = Pattern.compile("кроме\\s(?<exclude>[а-я]+)");
 
     String SIZE_TYPE_ALIGNMENT = "size-type-alignment";
+
+    String DND_SOURCE_URI = "https://dnd.su/items/";
+
+    String EQUIPMENT_HTML_CLASS = "col list-item__spell for_filter";
 }

@@ -1,6 +1,9 @@
 package owl.home.dnd.service.armor;
 
 
+import jakarta.persistence.EntityManager;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import owl.home.dnd.constant.item_type.armor.ArmorClass;
 import owl.home.dnd.constant.item_type.armor.ArmorCore;
 import owl.home.dnd.entitys.Armor;
@@ -12,7 +15,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 
+@Service
 public class ArmorService extends CoreEquipmentBean<Armor, ArmorCore> {
+    @Autowired
+    protected ArmorService(EntityManager entityManager) {
+        super(entityManager);
+    }
+
     @Override
     protected Set<ArmorCore> getCoreByName(String name) {
         return Arrays

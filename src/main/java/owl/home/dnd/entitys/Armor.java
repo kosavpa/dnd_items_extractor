@@ -1,6 +1,8 @@
 package owl.home.dnd.entitys;
 
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import owl.home.dnd.constant.item_type.armor.ArmorCore;
 
 import java.util.Collection;
@@ -10,6 +12,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 
+@Entity(name = "owl$Armor")
+@Table(name = "ARMOR")
 public class Armor extends Equipment {
     private Set<Integer> armorCores;
 

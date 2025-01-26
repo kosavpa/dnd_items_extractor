@@ -1,6 +1,9 @@
 package owl.home.dnd.service.weapon;
 
 
+import jakarta.persistence.EntityManager;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import owl.home.dnd.constant.item_type.weapon.WeaponCore;
 import owl.home.dnd.entitys.Weapon;
 import owl.home.dnd.service.common.core.CoreEquipmentBean;
@@ -14,7 +17,13 @@ import java.util.stream.Collectors;
 import static owl.home.dnd.constant.item_type.weapon.WeaponCore.*;
 
 
+@Service
 public class WeaponService extends CoreEquipmentBean<Weapon, WeaponCore> {
+    @Autowired
+    protected WeaponService(EntityManager entityManager) {
+        super(entityManager);
+    }
+
     @Override
     protected Weapon buildConcreteEquipment(EquipmentHint<Weapon> equipmentHint) {
         Weapon weapon = super.buildConcreteEquipment(equipmentHint);
